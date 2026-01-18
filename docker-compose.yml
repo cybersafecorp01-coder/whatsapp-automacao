@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  waha:
+    image: devlikeapro/waha:latest
+    container_name: whatsapp-automation-waha
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+      - "3001:3001"
+    environment:
+      - WAHA_API_KEY=f15e1e93b5744831a3dbbc1740d490fd
+      - SESSION_NAME=precisocr
+      - SESSION_TIMEOUT=60000
+      - AUTH_TIMEOUT=60000
+    volumes:
+      - ./waha-sessions:/app/sessions
+      - ./waha-logs:/app/logs
+    networks:
+      - whatsapp-network
+
+  bot:
+    build: .
+    container_name: whatsapp-automation-bot
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - WAHA_API_URL=http://waha:3000
+      - WAHA_API_KEY=f15e1e93b5744831a3dbbc1740d490fd
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - PORT=8080
+    volumes:
+      - ./personalities:/app/personalities
+      - ./logs:/app/logs
+    depends_on:
+      - waha
+    networks:
+      - whatsapp-network
+
+networks:
+  whatsapp-network:
+    driver: bridge
